@@ -22,13 +22,13 @@ class CheckerPieces(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
     def __init__(self, player, (centerx,centery)): # Wayne Note: self.center is for controlling position on the screen
         """Constructor. Creates instance of the Sprite class to initialize the sprites, assigns player images, defines position"""
         pygame.sprite.Sprite.__init__(self)
-        screen = pygame.display.get_surface() # Reference to the current display surface, the screen.
-        self.area = screen.get_rect()  # Assigns variable for the screen.
-        self.player = player  # self.player object is assigned to the argument.
+        screen = pygame.display.get_surface() # Reference for the display screen Surface object.
+        self.area = screen.get_rect()  # Assignment for the screen Surface rect object including position.
+        self.player = player  # Player is the player object.
 
         """Load the image onto the Surface object"""
         if player == "red":
-            self.image, self.rect = self.load_png('red-piece.png')  # Specfic image object and rect Surface object are assigned.
+            self.image, self.rect = self.load_png('red-piece.png')  # Specfic image object and image rect Surface object are assigned.
         elif player == "black":
             self.image, self.rect = self.load_png('black-piece.png')  # Assignment for player black
         else:
@@ -49,7 +49,7 @@ class CheckerPieces(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
                 print "I can't find this checker piece image!: ", imagepath
                 raise SystemExit, message
         image = image.convert_alpha() # Convert the image to make blitting faster
-        return image, image.get_rect() # Returns blitted Surface image object and a rectangle Surface object with the width and height.
+        return image, image.get_rect() # Returns blitted Surface image object and a rectangle image Surface object with the width and height.
 
     # """The king type would be part of this class. However it's not used in the module now."""
     # def king(self):
@@ -68,13 +68,12 @@ class CheckerPieces(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
 
 
 class CheckerBoard(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
-    """This class defines the board color types, its associated image and loads them"""
+    """This class defines the board color types, its associated image and loads the image into position."""
 
     def __init__(self, initial_position, color, row, col):
         pygame.sprite.Sprite.__init__(self)
         screen = pygame.display.get_surface()
-
-        self.area = screen.get_rect() # Assigns a rectangle for the screen.
+        self.area = screen.get_rect() # Reference for the display screen Surface object.
         self.color = color
         self.row = row
         self.col = col
@@ -87,7 +86,7 @@ class CheckerBoard(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
             print 'This is not a space color: ', color
             raise SystemExit, message
         
-        self.rect.topleft = initial_position  # This tuple will set the position
+        self.rect.topleft = initial_position  # Wayne Note: I think is just an assignment, not a rect object attribute.
 
 
     def load_png(self, name):
@@ -136,8 +135,8 @@ class CheckersMain(object):
         """Set up the checkerboard."""
         for row in range(8): # 0 thru 7
             for col in range(8):
-                top = tile_width*row # Pixel position. Row/top is the y coordinate. Start is 0,0
-                left = tile_width*col # Pixel position. Column/left is the x coordinate. Start is 0,0
+                top = tile_width*row # Pixel position. Row/top is the y coordinate. Start is (0,0), (0,75) etc. Down.
+                left = tile_width*col # Pixel position. Column/left is the x coordinate. Start is (0,0), (75,0)
                 if not(row % 2) and (col % 2):  # Initial combo is (0,1). The nested loop will layout by row.
                     black_spaces.add(CheckerBoard((left,top),"black", row, col)) # Track all black spaces by adding instances to the RenderUpdates() class.
                 elif not(row % 2) and not(col % 2): # Initial combo is (1, 1)
@@ -149,14 +148,14 @@ class CheckersMain(object):
 
         """Set up the checker pieces."""
         for row in range(8): # 0 thru 7
-            for col in range(8): # This inner loop will go through it's iterations first. (0,0),(0,1,(0,2) etc.
+            for col in range(8): # This inner loop will go through it's iterations first. (0,0),(0,1),(0,2) etc.
                 if row < 3:  # If y is 0, 1 or 2
                     player = "black"
                 elif row > 4: # If y is 5, 6, or 7
                     player = "red"
                 if row < 3 or row > 4:
-                    top = tile_width*row
-                    left = tile_width*col
+                    top = tile_width*row # (0, 75, 150, 225, etc. as the x-axis.)
+                    left = tile_width*col # (0, 75, 150, 225, etc. as the y-axix.)
                     if not(row % 2) and (col % 2): # (0, 1) 
                         pieces.add(CheckerPieces(player,(left+(tile_width/2), top+(tile_width/2)))) # Track all checker pieces by adding instances to the RenderUpdates() class. This determines onto which squares the pieces are drawn and tracked and the center x and y.
                     elif (row % 2) and not(col % 2): # (1, 0)
