@@ -11,6 +11,12 @@ import pygame, sys, os
 the recommended practice of not using the import * syntax
 """
 from pygame.locals import *
+from time import sleep
+
+from checkerboard import Checkerboard
+from checker import Checker
+from game import Game
+from computerplayer import ComputerPlayer
 
 
 class CheckerPieces(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
@@ -22,8 +28,8 @@ class CheckerPieces(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
     def __init__(self, player, (centerx,centery)): # Wayne Note: self.center is for controlling position on the screen
         """Constructor. Creates instance of the Sprite class to initialize the sprites, assigns player images, defines position"""
         pygame.sprite.Sprite.__init__(self)
-        screen = pygame.display.get_surface() # Reference for the display screen Surface object.
-        self.area = screen.get_rect()  # Assignment for the screen Surface rect object including position.
+        self.screen = pygame.display.get_surface() # Reference for the display screen Surface object.
+        self.area = self.screen.get_rect()  # Assignment for the screen Surface rect object including position.
         self.player = player  # Player is the player object.
 
         """Load the image onto the Surface object"""
@@ -101,7 +107,6 @@ class CheckerBoard(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
         return image, image.get_rect() # These objects are not visisble until drawn to the main display.
 
 
-
 class CheckersMain(object):
     """This class handles the main initialization and creation of the game.
     A Pygame window, or screen, is described by pixel width and pixel height.
@@ -114,55 +119,87 @@ class CheckersMain(object):
         """Window Caption"""
         pygame.display.set_caption('Simple Game of Checkers')
 
-
-    def mainloop(self):
-        """Create the screen using the disply module and the width-height arguments"""
-        screen = pygame.display.set_mode((600, 600), RESIZABLE) # The main display, or surface, of the terminal window size.
-        tile_width = 75 # The size if the checkboard square.
-
-        """Fill the background."""
-        background = pygame.Surface(screen.get_size()) # Size of screen surface
-        background.fill((255,255,255)) # Fill background surface. This RGB is white.
-        background = background.convert() # Convert surface to make blitting faster
+        """Initialize game for automated play"""
+        self.black_player = ComputerPlayer()
+        self.white_player = ComputerPlayer()
+        self.auto_game = Game(self.black_player, self.white_player)
 
         """All checkerboard squares and 24 pieces are initially added to this container when the board is drawn.
         Track and update all black, red checkboard spaces and checker pieces that have changed.
         """
-        black_spaces = pygame.sprite.RenderUpdates()
-        red_spaces = pygame.sprite.RenderUpdates()
-        pieces = pygame.sprite.RenderUpdates() # Both red and black pieces.
+        self.black_spaces = pygame.sprite.RenderUpdates()
+        self.red_spaces = pygame.sprite.RenderUpdates()
+        self.pieces = pygame.sprite.RenderUpdates() # Both red and black pieces.
+
+        self.game_on = True
+        self.turn = 'black'
+
+
+    def setup_the_checkerboard(self):
+        """Create the screen using the disply module and the width-height arguments"""
+        self.screen = pygame.display.set_mode((600, 600), RESIZABLE) # The main display, or surface, of the terminal window size.
+        self.tile_width = 75 # The size if the checkboard square.
+
+        """Fill the background."""
+        self.background = pygame.Surface(self.screen.get_size()) # Size of screen surface
+        self.background.fill((255,255,255)) # Fill background surface. This RGB is white.
+        self.background = self.background.convert() # Convert surface to make blitting faster
+
 
         """Set up the checkerboard."""
         for row in range(8): # 0 thru 7
             for col in range(8):
-                top = tile_width*row # Pixel position. Row/top is the y coordinate. Start is (0,0), (0,75) etc. Down.
-                left = tile_width*col # Pixel position. Column/left is the x coordinate. Start is (0,0), (75,0)
+                top = self.tile_width*row # Pixel position. Row/top is the y coordinate. Start is (0,0), (0,75) etc. Down.
+                left = self.tile_width*col # Pixel position. Column/left is the x coordinate. Start is (0,0), (75,0)
                 if not(row % 2) and (col % 2):  # Initial combo is (0,1). The nested loop will layout by row.
-                    black_spaces.add(CheckerBoard((left,top),"black", row, col)) # Track all black spaces by adding instances to the RenderUpdates() class.
+                    self.black_spaces.add(CheckerBoard((left,top),"black", row, col)) # Track all black spaces by adding instances to the RenderUpdates() class.
                 elif not(row % 2) and not(col % 2): # Initial combo is (1, 1)
-                    red_spaces.add(CheckerBoard((left,top),"red", row, col))
+                    self.red_spaces.add(CheckerBoard((left,top),"red", row, col))
                 elif (row % 2) and not(col % 2): # Initial combo is (1, 0)
-                    black_spaces.add(CheckerBoard((left,top),"black", row, col))
+                    self.black_spaces.add(CheckerBoard((left,top),"black", row, col))
                 elif (row % 2) and (col % 2): # Initial combo is (0, 0)
-                    red_spaces.add(CheckerBoard((left,top),"red", row, col))
+                    self.red_spaces.add(CheckerBoard((left,top),"red", row, col))
+
+
+    def setup_checker_pieces(self, checkers):
+        """Set up the checker pieces."""
+        #for row in range(8): # 0 thru 7
+        #    for col in range(8): # This inner loop will go through it's iterations first. (0,0),(0,1),(0,2) etc.
+        #        if row < 3:  # If y is 0, 1 or 2
+        #            player = "red"
+        #        elif row > 4: # If y is 5, 6, or 7
+        #            player = "black"
+        #        if row < 3 or row > 4:
+        #            top = self.tile_width*row # (0, 75, 150, 225, etc. as the x-axis.)
+        #            left = self.tile_width*col # (0, 75, 150, 225, etc. as the y-axix.)
+        #            if not(row % 2) and (col % 2): # (0, 1) 
+        #                pieces.add(CheckerPieces(player,(left+(self.tile_width/2), top+(self.tile_width/2)))) # Track all checker pieces by adding instances to the RenderUpdates() class. This determines onto which squares the pieces are drawn and tracked and the center x and y.
+        #            elif (row % 2) and not(col % 2): # (1, 0)
+        #                pieces.add(CheckerPieces(player,(left+(self.tile_width/2), top+(self.tile_width/2)))) # At this point 24 checker pieces are in RenderUpdates()
+
+        for checker in checkers:
+            if checker.color == 'black':
+                player = "black"
+            else:
+                player = "red"
+
+            top = checker.position[0] * self.tile_width      # (0, 75, 150, 225, etc. as the x-axis.)
+            left = checker.position[1] * self.tile_width     # (0, 75, 150, 225, etc. as the y-axix.)
+
+            self.pieces.add(CheckerPieces(player,(left+(self.tile_width/2), top+(self.tile_width/2)))) 
+
+
+    def mainloop(self):
+
+        """Set up the checkerboard."""
+        self.setup_the_checkerboard()
 
         """Set up the checker pieces."""
-        for row in range(8): # 0 thru 7
-            for col in range(8): # This inner loop will go through it's iterations first. (0,0),(0,1),(0,2) etc.
-                if row < 3:  # If y is 0, 1 or 2
-                    player = "black"
-                elif row > 4: # If y is 5, 6, or 7
-                    player = "red"
-                if row < 3 or row > 4:
-                    top = tile_width*row # (0, 75, 150, 225, etc. as the x-axis.)
-                    left = tile_width*col # (0, 75, 150, 225, etc. as the y-axix.)
-                    if not(row % 2) and (col % 2): # (0, 1) 
-                        pieces.add(CheckerPieces(player,(left+(tile_width/2), top+(tile_width/2)))) # Track all checker pieces by adding instances to the RenderUpdates() class. This determines onto which squares the pieces are drawn and tracked and the center x and y.
-                    elif (row % 2) and not(col % 2): # (1, 0)
-                        pieces.add(CheckerPieces(player,(left+(tile_width/2), top+(tile_width/2)))) # At this point 24 checker pieces are in RenderUpdates()
+        self.setup_checker_pieces(self.black_player.checkers)
+        self.setup_checker_pieces(self.white_player.checkers)
 
         """Blit the checkerboard and pieces to Surface object, i.e. the screen, so they appear."""
-        screen.blit(background, (0,0))
+        self.screen.blit(self.background, (0,0))
         # pygame.display.flip() # update drawing
 
         """Manage the sprite you are controlling by putting into GroupSingle()
@@ -234,18 +271,40 @@ class CheckersMain(object):
 
 
             """Remove all events from the queue. Clear screen"""
-            pieces.clear(screen, background)
-            black_spaces.clear(screen, background)
-            red_spaces.clear(screen, background)
+            self.pieces.clear(self.screen, self.background)
+            self.black_spaces.clear(self.screen, self.background)
+            self.red_spaces.clear(self.screen, self.background)
 
             """Draw images using RenderUpdates() draw method"""
-            black_spaces.draw(screen) # Draws changed sprites to the screen.
-            red_spaces.draw(screen)
-            pieces.draw(screen)
+            self.black_spaces.draw(self.screen) # Draws changed sprites to the screen.
+            self.red_spaces.draw(self.screen)
+            self.pieces.draw(self.screen)
 
             """Refresh the screen"""
             # pygame.display.flip()
             pygame.display.update()
+
+            sleep(2)
+
+            if self.game_on:
+                if self.turn == 'black':
+                    if self.black_player.play() == 'surrender':
+                        msg = 'Black surrenders'
+                        self.game_on = False
+                    else:
+                        msg = 'Black move complete'
+                        self.turn = 'white'
+                else:
+                    if self.white_player.play() == 'surrender':
+                        msg = 'White surrenders'
+                        self.game_on = False
+                    else:
+                        msg = 'White move complete'
+                        self.turn = 'black'
+
+                self.pieces = pygame.sprite.RenderUpdates()
+                self.setup_checker_pieces(self.black_player.checkers)
+                self.setup_checker_pieces(self.white_player.checkers)
 
 
     """Finish game"""
