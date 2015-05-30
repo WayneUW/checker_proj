@@ -6,6 +6,7 @@ from checkerboard import Checkerboard
 from checker import Checker
 from player import Player
 from computerplayer import ComputerPlayer
+from simpleplayer import SimplePlayer
 
 
 logger = logging.getLogger(__name__)
@@ -21,9 +22,11 @@ class Game(object):
         self.chb = Checkerboard()
         self.chb.setup_new_board()
 
+        self.black_player.color = u'black'
         self.black_player.checkerboard = self.chb
         self.black_player.checkers = self.chb.black_checkers
 
+        self.white_player.color = u'white'
         self.white_player.checkerboard = self.chb
         self.white_player.checkers = self.chb.white_checkers
 
@@ -34,8 +37,10 @@ class Game(object):
 
 
 if __name__ == u'__main__':
-    black_player = ComputerPlayer()
-    white_player = ComputerPlayer()
+    #black_player = ComputerPlayer()
+    logger.setLevel(logging.INFO)
+    black_player = SimplePlayer()
+    white_player = SimplePlayer()
 
     game = Game(black_player, white_player)
 
@@ -63,7 +68,7 @@ if __name__ == u'__main__':
                 turn = u'black'
 
         game.chb.print_board()
-        print msg
-        print
+        #print(msg)
+        #print()
 
     print u"Game over"
