@@ -17,6 +17,7 @@ from checkerboard import Checkerboard
 from checker import Checker
 from game import Game
 from computerplayer import ComputerPlayer
+from simpleplayer import SimplePlayer
 
 
 class CheckerPieces(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
@@ -120,8 +121,10 @@ class CheckersMain(object):
         pygame.display.set_caption('Simple Game of Checkers')
 
         """Initialize game for automated play"""
-        self.black_player = ComputerPlayer()
-        self.white_player = ComputerPlayer()
+        #self.black_player = ComputerPlayer()
+        #self.white_player = ComputerPlayer()
+        self.black_player = SimplePlayer()
+        self.white_player = SimplePlayer()
         self.auto_game = Game(self.black_player, self.white_player)
 
         """All checkerboard squares and 24 pieces are initially added to this container when the board is drawn.
@@ -302,6 +305,7 @@ class CheckersMain(object):
                         msg = 'White move complete'
                         self.turn = 'black'
 
+                print(msg)
                 self.pieces = pygame.sprite.RenderUpdates()
                 self.setup_checker_pieces(self.black_player.checkers)
                 self.setup_checker_pieces(self.white_player.checkers)
