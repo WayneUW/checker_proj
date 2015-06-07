@@ -58,13 +58,15 @@ class CheckerPieces(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
         image = image.convert_alpha() # Convert the image to make blitting faster
         return image, image.get_rect() # Returns blitted Surface image object and a rectangle image Surface object with the width and height.
 
-    # """The king type would be part of this class. However it's not used in the module now."""
+
+    # # Wayne added 6/1/15
     # def king(self):
+    #     """The King type."""
     #     self.type = "king"
     #     if self.player == "red":
-    #         self.image, self.rect = self.load_png('red-piece-king.png')
+    #         self.image, self.rect = self.load_png('redking-piece.png')
     #     elif self.player == "black":
-    #         self.image, self.rect = self.load_png('black-piece-king.png')
+    #         self.image, self.rect = self.load_png('blackking-piece.png')
 
 
     def update(self, position):
@@ -205,12 +207,12 @@ class CheckersMain(object):
         self.screen.blit(self.background, (0,0))
         # pygame.display.flip() # update drawing
 
-        """Manage the sprite you are controlling by putting into GroupSingle()
-        This allows the ability to manage a single sprite.
-        """
-        piece_selected = pygame.sprite.GroupSingle() # GroupSingle() holds a single sprite at a time. It can be None.
-        space_selected = pygame.sprite.GroupSingle() # The black space where the piece has moved to.
-        currentpiece_position = (0,0) # Initial piece position.
+        # """Manage the sprite you are controlling by putting into GroupSingle()
+        # This allows the ability to manage a single sprite.
+        # """
+        # piece_selected = pygame.sprite.GroupSingle() # GroupSingle() holds a single sprite at a time. It can be None.
+        # space_selected = pygame.sprite.GroupSingle() # The black space where the piece has moved to.
+        # currentpiece_position = (0,0) # Initial piece position.
 
 
 
@@ -220,57 +222,6 @@ class CheckersMain(object):
                 if event.type == QUIT: # Quit if the close button is clicked. pygame.QUIT worked. QUIT is a contstant in .locals
                     pygame.quit() # This is a opposite of the init() function. This is here to accomodate a bug which hands IDLE
                     sys.exit()
-
-
-                """Board with all the pieces load correctly."""
-
-
-
-                """The main logic for the game goes here. The idea is to:
-                Select a checker piece.
-                Make a determination of where to move it (the rules).
-                Move the piece.
-                Redraw the screen. Easy right?
-                
-                Something like this:
-                # boy = CheckerPieces("red", (337.5, 412.5))
-                # boyrect = boy.get_rect()
-                # boyrect.move = (337.5, 337)
-                # boyrect.draw(screen)
-
-
-                What I've been trying to do is grab a specific piece on the board.
-                I've tried to:
-                Select a specific sprite out of the container of sprites from RenderUpdate().
-                I am able to index a spite out of the container, but it doesn't seem know it's an object of the larger class.
-                It only knows it as an element of a list.
-
-                For example, If I change the container type to LayeredUpdates() which has the get_sprites-at function I can get the list.
-
-                # boy = pieces.get_sprites_at((75, 0))    OR   boy = pieces.get_sprite(1)
-                # boyrect = boy.get_rect()
-
-                If I print "boyrect" it shows me a list of one sprite. I need the object in order to manipulate it.
-
-
-
-                Meanwhile...
-                I have had some succes by calling the CheckerPieces class and passing the center coordinates.
-                I am able manipulate it using a rectangle attributes.
-
-                For example:
-                # boy = CheckerPieces("red", (337.5, 412.5)) # Return a specific red checkerpiece.
-                # boycenter = boy.rect.centerx # Return the center x coordinate of the rectangle.
-                # print boycenter
-
-                This returns centerx as 337 and continues to loop until I stop it. The center x coorindate is actually 337.5, so I'm
-                not sure why it returns 337.
-                However the fact that I can access the attribute centerx is good because it means it understands the statement.
-
-                At this point 5/23/15 almost noon, I decided to baseline the code and send to you in case you have installed
-                Pygame since you've had more sucess then me this week.
-                """
-
 
 
             """Remove all events from the queue. Clear screen"""
