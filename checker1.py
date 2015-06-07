@@ -287,7 +287,7 @@ class CheckersMain(object):
             # pygame.display.flip()
             pygame.display.update()
 
-            sleep(2)
+            sleep(1)
 
             if self.game_on:
                 if self.turn == 'black':
