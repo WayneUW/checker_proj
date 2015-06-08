@@ -68,10 +68,10 @@ class SimplePlayer(ComputerPlayer):
 
         logger.debug(u'get_neighboring_checkers({})'.format(square))
 
-        return {u'ne':self.checkerboard.get_checker((square[0]-1, square[1]-1)),
-                u'nw':self.checkerboard.get_checker((square[0]-1, square[1]+1)),
-                u'se':self.checkerboard.get_checker((square[0]+1, square[1]-1)),
-                u'sw':self.checkerboard.get_checker((square[0]+1, square[1]+1))}
+        return {u'nw':self.checkerboard.get_checker((square[0]-1, square[1]-1)),
+                u'ne':self.checkerboard.get_checker((square[0]-1, square[1]+1)),
+                u'sw':self.checkerboard.get_checker((square[0]+1, square[1]-1)),
+                u'se':self.checkerboard.get_checker((square[0]+1, square[1]+1))}
 
 
     def checker_vulnerable(self, checker, square=None):
@@ -220,7 +220,7 @@ class SimplePlayer(ComputerPlayer):
 
         row, column = checker.position
 
-        # Search perimeter of expanding squares around checker
+        # Search perimeter of expanding squares around checker, until opponent is found
         for offset in xrange(8):
             # Search the next row north of checker
             offset_row = row - offset
@@ -313,6 +313,30 @@ class SimplePlayer(ComputerPlayer):
                             logger.debug(u'select_move(): Moving white to attack {}'.format(move))
                             return (u'move', move)
 
+        # Get kings away from opponent's home row, to clear space for potential new kings
+        # for move in moves_list:
+        #     ch = self.checkerboard.get_checker(move[0])
+        #     if ch.king and ch.color == 'black':
+        #         if ch.position[0] == 0:
+        #             if not self.checker_vulnerable(ch, move[1]):
+        #                 logger.debug('select_move(): Moving black king off opponent home row {}'.format(move))
+        #                 return ('move', move)
+        #         elif ch.position[0] == 1 and move[1][0] > 1:
+        #             if not self.checker_vulnerable(ch, move[1]):
+        #                 logger.debug('select_move(): Moving black king away from opponent home row {}'.format(move))
+        #                 return ('move', move)
+
+        #     elif ch.king and ch.color == 'white':
+        #         if ch.position[0] == 7:
+        #             if not self.checker_vulnerable(ch, move[1]):
+        #                 logger.debug('select_move(): Moving white king off opponent home row {}'.format(move))
+        #                 return ('move', move)
+        #         elif ch.position[0] == 6 and move[1][0] < 6:
+        #             if not self.checker_vulnerable(ch, move[1]):
+        #                 logger.debug('select_move(): Moving white king away from opponent home row {}'.format(move))
+        #                 return ('move', move)
+
+
         # Bias towards moving checkers closer to being crowned
         for move in moves_list:
             # Get the checker that could be moved
@@ -341,7 +365,7 @@ class SimplePlayer(ComputerPlayer):
                                 return (u'move', move)
 
         # If nearing the end game, get home row checkers in play
-        if len(self.checkers) + self.count_opponent_checkers() < 11:
+        if len(self.checkers) + self.count_opponent_checkers() < 13:
             for move in moves_list:
                 ch = self.checkerboard.get_checker(move[0])
                 if not ch.king:
@@ -449,6 +473,7 @@ class SimplePlayer(ComputerPlayer):
                     if self.checkerboard.get_checker(target_square).king:
                         # Avoid risk of moving to 2 squares from opponent on row or column
                         #   as this opens up risk of fork attack by a king
+                        # Note: Add logic here.  This test is too restrictive.  This is sometimes a good move.
                         if (not (move[1][0] == target_square[0] and 
                                  move[1][1] in (target_square[1] + 2, target_square[1] - 2)) or
                                 (move[1][1] == target_square[1] and

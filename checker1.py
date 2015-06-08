@@ -7,6 +7,7 @@ Pygame 1.9.2pre-py2.7-macosx10.7
 """
 
 import pygame, sys, os
+import collections
 """pygame.locals has several constants which are easily recognized so we break
 the recommended practice of not using the import * syntax
 """
@@ -26,7 +27,7 @@ class CheckerPieces(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
     The self.rect variable is the location when that image is drawn to the screen.
     """
     
-    def __init__(self, player, (centerx,centery)): # Wayne Note: self.center is for controlling position on the screen
+    def __init__(self, player, (centerx,centery), king=False): # Wayne Note: self.center is for controlling position on the screen
         """Constructor. Creates instance of the Sprite class to initialize the sprites, assigns player images, defines position"""
         pygame.sprite.Sprite.__init__(self)
         self.screen = pygame.display.get_surface() # Reference for the display screen Surface object.
@@ -35,9 +36,15 @@ class CheckerPieces(pygame.sprite.Sprite):  # Subclass of the main Sprite class.
 
         """Load the image onto the Surface object"""
         if player == "red":
-            self.image, self.rect = self.load_png('red-piece.png')  # Specfic image object and image rect Surface object are assigned.
+            if king:
+                self.image, self.rect = self.load_png('redking-piece.png')
+            else:
+                self.image, self.rect = self.load_png('red-piece.png')  # Specfic image object and image rect Surface object are assigned.
         elif player == "black":
-            self.image, self.rect = self.load_png('black-piece.png')  # Assignment for player black
+            if king:
+                self.image, self.rect = self.load_png('blackking-piece.png')
+            else:
+                self.image, self.rect = self.load_png('black-piece.png')  # Assignment for player black
         else:
             print "I don't recognize this player: ", player
             raise SystemExit, message
@@ -138,6 +145,7 @@ class CheckersMain(object):
 
         self.game_on = True
         self.turn = 'black'
+        self.pos_counter = collections.Counter()
 
 
     def setup_the_checkerboard(self):
@@ -191,7 +199,7 @@ class CheckersMain(object):
             top = checker.position[0] * self.tile_width      # (0, 75, 150, 225, etc. as the x-axis.)
             left = checker.position[1] * self.tile_width     # (0, 75, 150, 225, etc. as the y-axix.)
 
-            self.pieces.add(CheckerPieces(player,(left+(self.tile_width/2), top+(self.tile_width/2)))) 
+            self.pieces.add(CheckerPieces(player,(left+(self.tile_width/2), top+(self.tile_width/2)), checker.king)) 
 
 
     def mainloop(self):
@@ -238,9 +246,22 @@ class CheckersMain(object):
             # pygame.display.flip()
             pygame.display.update()
 
-            sleep(1)
+            sleep(2)
 
             if self.game_on:
+                # Get hash value of all checkers' positions
+                ch_black_pos = [ch.position for ch in self.black_player.checkers]
+                ch_white_pos = [ch.position for ch in self.white_player.checkers]
+                checkers_hash = hash(tuple(ch_black_pos + ch_white_pos))
+                # Game ends in draw if all checkers' positions repeat 4 times
+                print('len(game.pos_counter) = {}'.format(len(self.pos_counter)))
+                print('checkers_hash = {}'.format(checkers_hash))
+                self.pos_counter.update([checkers_hash])
+                print('self.pos_counter[checkers_hash] = {}'.format(self.pos_counter[checkers_hash]))
+                if self.pos_counter[checkers_hash] >= 4:
+                    print('The game is a draw due to repeating positions')
+                    self.game_on = False
+
                 if self.turn == 'black':
                     if self.black_player.play() == 'surrender':
                         msg = 'Black surrenders'
